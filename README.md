@@ -13,7 +13,8 @@ This repositary proposes a code to scrape through Google Scholar research inform
   * selenium
   * fake_useragent
   * pathlib
-  * requests, time, os, codecs, re, csv
+  * requests
+  * time, os, codecs, re, csv
 
 ## How to use
 There are 2 ways to use this script : 
