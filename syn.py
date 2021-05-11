@@ -1,6 +1,6 @@
 import pubchempy as pcp
 
-#function which return a list of synonym for a given name of a molecule or a given pubchem number
+#function which return a list of synonym(str) for a given name of a molecule or a given pubchem number
 
 def synonyms(mol):
 
