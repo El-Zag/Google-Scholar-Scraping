@@ -29,8 +29,8 @@ DOWNLOAD_DIR = os.getcwd() + "\\Download"
 LANGUAGE = 'fr'
 
 # If the search is being blocked by Captchas, change this to True
-CAPTCHA = False
-if CAPTCHA :
+CAPTCHA = True
+if CAPTCHA:
     DRIVER = webdriver.Chrome()
     DRIVER.get("https://scholar.google.com/")
 
@@ -53,7 +53,8 @@ REGEX = re.compile('[^a-zA-Z0-9]')
 # Summary : String, Google scholar summary
 # Cited : Int, Number of times cited
 # Download : String, url to download the text
-# Type : String, 'PDF', 'HTML'..}
+# Type : String, 'PDF', 'HTML'..
+# DL Source : String, website the download is from}
 def article_info(soup_article):
     # assert (soup_article.find("div", class_="gs_ggs gs_fl") is not None, "Il n'y a pas de lien pour télécharger cet article")
     info = dict()
@@ -84,9 +85,13 @@ def article_info(soup_article):
     # Informations sur le téléchargement
     dl_infos = soup_article.findChild("div", class_="gs_or_ggsm")
     info['Download'] = dl_infos.a['href']
-    dl_type = dl_infos.span.text
-    info['Type'] = dl_type[1:len(dl_type) - 1]
-
+    if dl_infos.text == "Full View":
+        info['Type'] = 'HTML'
+        info['DL Source'] = 'unknown'
+    else:
+        dl_type = dl_infos.span.text
+        info['Type'] = dl_type[1:len(dl_type) - 1]
+        info['DL Source'] = dl_infos.a.text.split(']')[1].split()[0]
     return info
 
 
@@ -134,13 +139,20 @@ def url_infos(soup_url):
                     print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
                     articles_dl.append(info)
 
-                    exists = os.path.isfile(DOWNLOAD_DIR + '\\metadonnees.csv')
-                    with open(DOWNLOAD_DIR + '\\metadonnees.csv', 'a', newline='', encoding="utf-8") as output:
-                        dictwriter = csv.DictWriter(output, fieldnames=info.keys(), delimiter=";")
-                        if not exists:
-                            dictwriter.writeheader()
-                        dictwriter.writerow(info)
-                        output.close()
+                    save_metadata(info)
+            else:
+
+                name = REGEX.sub('_', info['Title'].lower()) + '.html'
+                if not os.path.exists(DOWNLOAD_DIR + '\\' + name):
+
+                    # sciencedirect.com
+                    if info['DL Source'] == "sciencedirect.com":
+                        info['Filename'] = name
+                        sciencedirect(info['Download'], name)
+
+                        save_metadata(info)
+                        articles_dl.append(info)
+                        print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
 
     return articles_dl
 
@@ -209,12 +221,48 @@ def generate_url(searchbar, page=1):
 def pages_infos(searchbar, first_page=1, last_page=5):
     articles_dl = []
     for i in range(first_page, last_page + 1):
-        print("\nExploration of Page " + str(i) )
+        print("\nExploration of Page " + str(i))
         url = generate_url(searchbar, page=i)
         articles_dl = articles_dl + url_infos(url)
     print("\n" + str(len(articles_dl)) + " documents ont été téléchargés")
     return articles_dl
 
 
-#searchbar = 'rutin'
-#articles_downloaded = pages_infos(searchbar, 1, 10)
+searchbar = 'rutin'
+
+
+# articles_downloaded = pages_infos(searchbar, 50, 50)
+def save_metadata(info):
+    exists = os.path.isfile(DOWNLOAD_DIR + '\\metadonnees.csv')
+    with open(DOWNLOAD_DIR + '\\metadonnees.csv', 'a', newline='', encoding="utf-8") as output:
+        dictwriter = csv.DictWriter(output, fieldnames=info.keys(), delimiter=";")
+        if not exists:
+            dictwriter.writeheader()
+        dictwriter.writerow(info)
+        output.close()
+
+# Saves a html with abstract, text, and bibliography from a full url
+def sciencedirect(soup_url, name):
+    if not CAPTCHA:
+        req = requests.get(soup_url, HEADERS)
+        soup = BeautifulSoup(req.content, 'lxml')
+
+    # SWITCH TO THIS if captcha block
+    else:
+        DRIVER.get(soup_url)
+        sleep(SLEEP)
+        soup = BeautifulSoup(DRIVER.page_source, 'lxml')
+
+    html = open(DOWNLOAD_DIR + "\\" + name, "w", encoding='utf-8')
+
+    abstract = soup.findChild('div', id="abstracts")
+    html.write(str(abstract))
+
+    body = soup.findChild('div', id="body")
+    html.write(str(body))
+
+    tail = soup.find("div", class_="Tail")
+    biblio = tail.next_element
+    html.write(str(biblio))
+
+    html.close()
