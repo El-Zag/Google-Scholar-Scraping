@@ -14,6 +14,7 @@ This repositary proposes a code to scrape through Google Scholar research inform
   * fake_useragent
   * pathlib
   * requests
+  * pubchempy
   * time, os, codecs, re, csv
 
 ## How to use
