@@ -8,6 +8,10 @@ from pathlib import Path
 import re
 from fake_useragent import UserAgent
 import csv
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 # To simulate a real user and not a bot
 
@@ -34,8 +38,8 @@ if CAPTCHA:
     DRIVER = webdriver.Chrome()
     DRIVER.get("https://scholar.google.com/")
 
-# Time to sleep between embedded downloads, in seconds
-SLEEP = 7
+# Time to sleep to charge url
+SLEEP = 4
 
 # Transform characters to save pdfs names
 REGEX = re.compile('[^a-zA-Z0-9]')
@@ -162,7 +166,6 @@ def dl_embedded_pdf(link, name):
     driver.get(link)
 
     sleep(SLEEP)
-
     # For pdfs from wiley it doesn't download it right away
     frame = driver.find_elements_by_id('pdf-iframe')
     if len(frame) == 1:
@@ -170,11 +173,21 @@ def dl_embedded_pdf(link, name):
         driver.find_element_by_tag_name('a').click()
         sleep(SLEEP)
 
-    files = os.listdir(DOWNLOAD_DIR)
-    paths = [os.path.join(DOWNLOAD_DIR, basename) for basename in files]
-    file = max(paths, key=os.path.getctime)
+    file = most_recent_file()
+    while not file or file.endswith('.crdownload'):
+        sleep(1)
+        file = most_recent_file()
     os.rename(file, DOWNLOAD_DIR + '\\' + name)
     driver.close()
+
+
+def most_recent_file():
+    files = os.listdir(DOWNLOAD_DIR)
+    if not files:
+        return 0
+    paths = [os.path.join(DOWNLOAD_DIR, basename) for basename in files]
+    file = max(paths, key=os.path.getctime)
+    return file
 
 
 # Generate the google scholar url based on the words in the searchbar, at the indicated page
@@ -198,10 +211,11 @@ def generate_url(searchbar, page=1):
 def pages_infos(searchbar, first_page=1, last_page=5):
     articles_dl = []
     for i in range(first_page, last_page + 1):
-        print("exploration de la page " + str(i))
+        print("Exploration of Page " + str(i))
         url = generate_url(searchbar, page=i)
         articles_dl = articles_dl + url_infos(url)
     return articles_dl
 
-# searchbar = 'rutin'
-# articles_downloaded = pages_infos(searchbar, 1, 5)
+
+searchbar = 'rutin'
+articles_downloaded = pages_infos(searchbar, 1, 10)
