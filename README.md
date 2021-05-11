@@ -7,7 +7,7 @@ This repositary proposes a code to scrape through Google Scholar research inform
 * Download code and ressources folder
 * Add the ressources folder to your PATH (https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/)
 * (Open new cmd and type 'chromedriver' to check that the variable was added to path)
-* Open cmd and execute (pip3 install -r ressources\requirements.txt)
+* Open cmd and execute (pip3 install -r ressources\requirements.txt) ou (pip3 install --user -r ressources\requirements.txt) if permissions are denied
 * Or add manually the libraries :
   * bs4
   * selenium
