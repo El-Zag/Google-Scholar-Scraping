@@ -1,4 +1,4 @@
-# Google-Scholar-API
+# Google Scholar API
 
 This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with metadata.
 
