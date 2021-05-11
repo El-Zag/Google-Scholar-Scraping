@@ -8,10 +8,6 @@ from pathlib import Path
 import re
 from fake_useragent import UserAgent
 import csv
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
 # To simulate a real user and not a bot
 
@@ -34,7 +30,7 @@ LANGUAGE = 'fr'
 
 # If the search is being blocked by Captchas, change this to True
 CAPTCHA = False
-if CAPTCHA:
+if CAPTCHA :
     DRIVER = webdriver.Chrome()
     DRIVER.get("https://scholar.google.com/")
 
@@ -135,7 +131,7 @@ def url_infos(soup_url):
                     # If not, use webdriver to download the links
                     else:
                         dl_embedded_pdf(info['Download'], name)
-                    print(info)
+                    print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
                     articles_dl.append(info)
 
                     exists = os.path.isfile(DOWNLOAD_DIR + '\\metadonnees.csv')
@@ -190,6 +186,7 @@ def most_recent_file():
     return file
 
 
+# searchbar should be a String, just as you would have typed it in Google Scholar
 # Generate the google scholar url based on the words in the searchbar, at the indicated page
 def generate_url(searchbar, page=1):
     q = searchbar.split()
@@ -206,16 +203,18 @@ def generate_url(searchbar, page=1):
     return "https://scholar.google.com/scholar?start=" + str(page) + "&q=" + q + "&hl=" + LANGUAGE + "&as_sdt=0,5"
 
 
-# downloaded the documents related to the search, for the pages indicated
+# searchbar should be a String, just as you would have typed it in Google Scholar
+# downloaded the documents related to the searchbar String, for the pages indicated
 # returns a list of dics with the metadata
 def pages_infos(searchbar, first_page=1, last_page=5):
     articles_dl = []
     for i in range(first_page, last_page + 1):
-        print("Exploration of Page " + str(i))
+        print("\nExploration of Page " + str(i) )
         url = generate_url(searchbar, page=i)
         articles_dl = articles_dl + url_infos(url)
+    print("\n" + str(len(articles_dl)) + " documents ont été téléchargés")
     return articles_dl
 
 
-searchbar = 'rutin'
-articles_downloaded = pages_infos(searchbar, 1, 10)
+#searchbar = 'rutin'
+#articles_downloaded = pages_infos(searchbar, 1, 10)
