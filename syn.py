@@ -13,7 +13,7 @@ def synonyms(mol):
     else: return ("Veuillez entrer un nom de molécule ou un numéro de référence pubchem svp")
 
 
-print(synonyms("rutin"))
+
 
 
 
