@@ -32,10 +32,9 @@ There are 2 ways to use this script :
 * captcha : change to True if you get recognized as a bot and start to get the error "NoneType Element has no attribute findChildren". It will switch to a selenium webdriver to scrape html, and let you manually fill in the Captcha before you can keep going.
 * sleeptime : time in seconds to wait for the pages to charge when downloading embedded pdfs or html pages. You may need to make it longer if you have a slow connexion to not get errors
 
-## Extensions to work on
+## Future Extensions 
 * Choose to export metadata in json or csv
 * Add HTML sources other than sciencedirect
-* Add scraping of synonym of the component
 * Find a way to better treat the captchas issue
 * Transform .pdf to good .html
 * Treat .html file to ensure they are indeed related to the subject
