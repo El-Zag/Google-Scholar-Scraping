@@ -32,7 +32,9 @@ class Scraper:
         self.driver = None
         # On ouvre une session et on rempli à la main le captcha
         if self.captcha:
-            self.driver = webdriver.Chrome()
+            options = webdriver.ChromeOptions()
+            options.add_argument(f'user-agent={self.ua.random}')
+            self.driver = webdriver.Chrome(options=options)
             self.driver.get("https://scholar.google.com/")
 
     def set_language(self, language):
@@ -200,16 +202,16 @@ class Scraper:
         })
         options.add_argument(f'user-agent={self.ua.random}')
 
-        driver = webdriver.Chrome(options=options)
-        driver.get(link)
+        tmp_driver = webdriver.Chrome(options=options)
+        tmp_driver.get(link)
 
         sleep(self.sleep)
 
         # For pdfs from wiley it doesn't download it right away
-        frame = driver.find_elements_by_id('pdf-iframe')
+        frame = tmp_driver.find_elements_by_id('pdf-iframe')
         if len(frame) == 1:
-            driver.switch_to.frame(frame[0])
-            driver.find_element_by_tag_name('a').click()
+            tmp_driver.switch_to.frame(frame[0])
+            tmp_driver.find_element_by_tag_name('a').click()
             sleep(self.sleep)
 
         file = self.most_recent_file()
@@ -217,7 +219,7 @@ class Scraper:
             sleep(1)
             file = self.most_recent_file()
         os.rename(file, self.download_dir + '\\' + name)
-        driver.close()
+        tmp_driver.close()
 
     def most_recent_file(self):
         files = os.listdir(self.download_dir)
@@ -279,4 +281,4 @@ class Scraper:
         html.close()
 
 # Example of scraper :
-# scraper = Scraper(os.getcwd() + '\\Download', 'fr', False, 4)
+# scraper = Scraper(os.getcwd() + '\\Download', 'fr', True, 5)
