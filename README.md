@@ -1,6 +1,6 @@
 # Google Scholar API
 
-This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with metadata.
+This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with their metadata.
 
 ## Before running the code (WINDOWS)
 * Install Google Chrome
@@ -19,11 +19,11 @@ This repositary proposes a code to scrape through Google Scholar research inform
 
 ## How to use
 There are 2 ways to use this script : 
-* Use the Jupyter Notebook
-* Execute the "pages_infos" function directly from the Google_Scholar_API.py
+* Use the Jupyter Notebook Interface (recommended)
+* Execute the "download_files" method of a Scraper() instance, directly from the Google_Scholar_API.py
 
-## Global Variables
-* DOWNLOAD_DIR : Directory where the files will be downloaded with the metadata csv
-* LANGUAGE : 'fr', 'en'.. Language of Google, which switches reasearch results a little
-* CAPTCHA : change to True if you get recognized as a bot and start to get errors like "NoneType Element has no attribute findChildren". It will switch to a selenium driver to scrape html, and let you manually fill in the Captcha.
-* SLEEP : time in seconds to wait for the pages to charge when downloading embedded pdfs. You may need to make it longer if you have a slow connexion to not get errors
+## Variables of the Scraper
+* download_dir : Directory where the files will be downloaded with the metadata csv
+* language : 'fr', 'en'.. Language of Google, which switches reasearch results a little
+* captcha : change to True if you get recognized as a bot and start to get the error "NoneType Element has no attribute findChildren". It will switch to a selenium webdriver to scrape html, and let you manually fill in the Captcha before you can keep going.
+* sleeptime : time in seconds to wait for the pages to charge when downloading embedded pdfs or html pages. You may need to make it longer if you have a slow connexion to not get errors
