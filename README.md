@@ -1,6 +1,6 @@
 # Google Scholar API
 
-This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with their metadata.
+This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with their metadata. It was specifically designed to work on chemistry components research. 
 
 ## Before running the code (WINDOWS)
 * Install Google Chrome
@@ -16,6 +16,10 @@ This repositary proposes a code to scrape through Google Scholar research inform
   * requests
   * pubchempy
   * time, os, codecs, re, csv
+* To make the notebook work, add the folowing :
+  * ipywidgets
+  * tkinter
+  * IPython
 
 ## How to use
 There are 2 ways to use this script : 
@@ -27,3 +31,11 @@ There are 2 ways to use this script :
 * language : 'fr', 'en'.. Language of Google, which switches reasearch results a little
 * captcha : change to True if you get recognized as a bot and start to get the error "NoneType Element has no attribute findChildren". It will switch to a selenium webdriver to scrape html, and let you manually fill in the Captcha before you can keep going.
 * sleeptime : time in seconds to wait for the pages to charge when downloading embedded pdfs or html pages. You may need to make it longer if you have a slow connexion to not get errors
+
+## Extensions to work on
+* Choose to export metadata in json or csv
+* Add HTML sources other than sciencedirect
+* Add scraping of synonym of the component
+* Find a way to better treat the captchas issue
+* Transform .pdf to good .html
+* Treat .html file to ensure they are indeed related to the subject
