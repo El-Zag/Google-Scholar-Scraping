@@ -1,6 +1,6 @@
 # Google Scholar API
 
-This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with their metadata. It was specifically designed to work on chemistry components research. 
+This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with their metadata. It was specifically designed to work on chemistry components research. This project won a Hackathon organized by Mines Nancy (Engineering School in France).
 
 ## Before running the code (WINDOWS)
 * Install Google Chrome
