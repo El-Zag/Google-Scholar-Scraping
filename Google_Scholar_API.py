@@ -58,7 +58,7 @@ class Scraper:
     # searchbar should be a String, just as you would have typed it in Google Scholar
     # downloaded the documents related to the searchbar String, for the pages indicated
     # returns a list of dics with the metadata
-    def download_files(self, searchbar, first_page=1, last_page=5):
+    def download_files(self, searchbar, first_page=1, last_page=5, include_all = False):
 
         articles_dl = []
 
@@ -68,13 +68,13 @@ class Scraper:
 
             url = self.generate_url(searchbar, page=i)
 
-            articles_dl = articles_dl + self.url_infos(url)
+            articles_dl = articles_dl + self.url_infos(url, include_all)
 
         print("\n" + str(len(articles_dl)) + " documents ont été téléchargés")
         return articles_dl
 
     # downloads all the available texts from the google scholar url
-    def url_infos(self, soup_url):
+    def url_infos(self, soup_url, include_all=False):
         if not self.captcha:
             req = requests.get(soup_url, self.headers)
             soup = BeautifulSoup(req.content, 'lxml')
@@ -90,49 +90,55 @@ class Scraper:
         # List of all the articles
         articles = results.findChildren("div", class_="gs_r gs_or gs_scl")
 
-        # Articles with a downloadable link
         articles_dl = []
         for article in articles:
-            if article.find("div", class_="gs_ggs gs_fl") is not None:
+            if article.find("div", class_="gs_ri") is not None:
 
-                info = self.article_info(article)
+                if article.find("div", class_="gs_ggs gs_fl") is not None:
+                    has_document = True
+                else:
+                    has_document = False
 
                 # Cas d'un lien pdf directement
-                if info['Type'] == 'PDF':
+                if has_document:
+                    info = self.article_info(article, has_document)
+                    if info['Type'] == 'PDF':
 
-                    # Name of the file we're going to download
-                    name = self.regex.sub('_', info['Title'].lower()) + '.pdf'
+                        # Name of the file we're going to download
+                        name = self.regex.sub('_', info['Title'].lower()) + '.pdf'
 
-                    # Check if the paper has already been downloaded
-                    if not os.path.exists(self.download_dir + '\\' + name):
-                        info['Filename'] = name
-
-                        # If the link is already a pdf file, download it directly
-                        if os.path.splitext(info['Download'])[1] == ".pdf":
-                            filename = Path(self.download_dir + '\\' + name)
-                            response = requests.get(info['Download'])
-                            filename.write_bytes(response.content)
-
-                        # If not, use webdriver to download the links
-                        else:
-                            self.dl_embedded_pdf(info['Download'], name)
-                        print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
-                        articles_dl.append(info)
-
-                        self.save_metadata(info)
-                else:
-
-                    name = self.regex.sub('_', info['Title'].lower()) + '.html'
-                    if not os.path.exists(self.download_dir + '\\' + name):
-
-                        # sciencedirect.com
-                        if info['DL Source'] == "sciencedirect.com":
+                        # Check if the paper has already been downloaded
+                        if not os.path.exists(self.download_dir + '\\' + name):
                             info['Filename'] = name
-                            self.sciencedirect(info['Download'], name)
+
+                            # If the link is already a pdf file, download it directly
+                            if os.path.splitext(info['Download'])[1] == ".pdf":
+                                filename = Path(self.download_dir + '\\' + name)
+                                response = requests.get(info['Download'])
+                                filename.write_bytes(response.content)
+
+                            # If not, use webdriver to download the links
+                            else:
+                                self.dl_embedded_pdf(info['Download'], name)
+                            print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
+                            articles_dl.append(info)
 
                             self.save_metadata(info)
-                            articles_dl.append(info)
-                            print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
+                    else:
+
+                        name = self.regex.sub('_', info['Title'].lower()) + '.html'
+                        if not os.path.exists(self.download_dir + '\\' + name):
+
+                            # sciencedirect.com
+                            if info['DL Source'] == "sciencedirect.com":
+                                info['Filename'] = name
+                                self.sciencedirect(info['Download'], name)
+
+                                self.save_metadata(info)
+                                articles_dl.append(info)
+                                print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
+                elif include_all:
+                    articles_dl.append(self.article_info(article, has_document))
 
         return articles_dl
 
@@ -150,7 +156,7 @@ class Scraper:
     # Download : String, url to download the text
     # Type : String, 'PDF', 'HTML'..
     # DL Source : String, website the download is from}
-    def article_info(self, soup_article):
+    def article_info(self, soup_article, has_document=True):
         # assert (soup_article.find("div", class_="gs_ggs gs_fl") is not None, "Il n'y a pas de lien pour télécharger cet article")
         info = dict()
 
@@ -164,9 +170,12 @@ class Scraper:
         publication_infos = publication_infos.split(" - ")
         length = len(publication_infos[1])
         info['Authors'] = publication_infos[0]
-        info['Journal'] = publication_infos[1][0:length - 6]
-        info['Year'] = int(publication_infos[1][length - 4:length])
-        info['Source'] = publication_infos[2]
+        if(len(publication_infos) > 2):
+            info['Journal'] = publication_infos[1][0:length - 6]
+            info['Year'] = int(publication_infos[1][length - 4:length])
+            info['Source'] = publication_infos[2]
+        else:
+            info['Source'] = publication_infos[1]
 
         summary = general_infos.findChild("div", class_="gs_rs").text
         summary = summary.replace(u'\xa0', u' ')
@@ -178,15 +187,16 @@ class Scraper:
         info['Cited'] = cited[5:len(cited) - 5]
 
         # Informations sur le téléchargement
-        dl_infos = soup_article.findChild("div", class_="gs_or_ggsm")
-        info['Download'] = dl_infos.a['href']
-        if dl_infos.text == "Full View":
-            info['Type'] = 'HTML'
-            info['DL Source'] = 'unknown'
-        else:
-            dl_type = dl_infos.span.text
-            info['Type'] = dl_type[1:len(dl_type) - 1]
-            info['DL Source'] = dl_infos.a.text.split(']')[1].split()[0]
+        if has_document:
+            dl_infos = soup_article.findChild("div", class_="gs_or_ggsm")
+            info['Download'] = dl_infos.a['href']
+            if dl_infos.text == "Full View":
+                info['Type'] = 'HTML'
+                info['DL Source'] = 'unknown'
+            else:
+                dl_type = dl_infos.span.text
+                info['Type'] = dl_type[1:len(dl_type) - 1]
+                info['DL Source'] = dl_infos.a.text.split(']')[1].split()[0]
         return info
 
     # Downloads pdfs that are embedded in a link and not .pdf
