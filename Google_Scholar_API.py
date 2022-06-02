@@ -92,53 +92,45 @@ class Scraper:
 
         articles_dl = []
         for article in articles:
-            if article.find("div", class_="gs_ri") is not None:
+            # Cas d'un lien pdf directement
+            if article.find("div", class_="gs_ggs gs_fl") is not None:
+                info = self.article_info(article, True)
+                if info['Type'] == 'PDF':
 
-                if article.find("div", class_="gs_ggs gs_fl") is not None:
-                    has_document = True
+                    # Name of the file we're going to download
+                    name = self.regex.sub('_', info['Title'].lower()) + '.pdf'
+
+                    # Check if the paper has already been downloaded
+                    if not os.path.exists(self.download_dir + '\\' + name):
+                        info['Filename'] = name
+
+                        # If the link is already a pdf file, download it directly
+                        if os.path.splitext(info['Download'])[1] == ".pdf":
+                            filename = Path(self.download_dir + '\\' + name)
+                            response = requests.get(info['Download'])
+                            filename.write_bytes(response.content)
+
+                        # If not, use webdriver to download the links
+                        else:
+                            self.dl_embedded_pdf(info['Download'], name)
+                        print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
+                        articles_dl.append(info)
+
+                        self.save_metadata(info)
                 else:
-                    has_document = False
+                    name = self.regex.sub('_', info['Title'].lower()) + '.html'
+                    if not os.path.exists(self.download_dir + '\\' + name):
 
-                # Cas d'un lien pdf directement
-                if has_document:
-                    info = self.article_info(article, has_document)
-                    if info['Type'] == 'PDF':
-
-                        # Name of the file we're going to download
-                        name = self.regex.sub('_', info['Title'].lower()) + '.pdf'
-
-                        # Check if the paper has already been downloaded
-                        if not os.path.exists(self.download_dir + '\\' + name):
+                        # sciencedirect.com
+                        if info['DL Source'] == "sciencedirect.com":
                             info['Filename'] = name
-
-                            # If the link is already a pdf file, download it directly
-                            if os.path.splitext(info['Download'])[1] == ".pdf":
-                                filename = Path(self.download_dir + '\\' + name)
-                                response = requests.get(info['Download'])
-                                filename.write_bytes(response.content)
-
-                            # If not, use webdriver to download the links
-                            else:
-                                self.dl_embedded_pdf(info['Download'], name)
-                            print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
-                            articles_dl.append(info)
+                            self.sciencedirect(info['Download'], name)
 
                             self.save_metadata(info)
-                    else:
-
-                        name = self.regex.sub('_', info['Title'].lower()) + '.html'
-                        if not os.path.exists(self.download_dir + '\\' + name):
-
-                            # sciencedirect.com
-                            if info['DL Source'] == "sciencedirect.com":
-                                info['Filename'] = name
-                                self.sciencedirect(info['Download'], name)
-
-                                self.save_metadata(info)
-                                articles_dl.append(info)
-                                print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
-                elif include_all:
-                    articles_dl.append(self.article_info(article, has_document))
+                            articles_dl.append(info)
+                            print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
+            elif include_all:
+                articles_dl.append(self.article_info(article, False))
 
         return articles_dl
 
