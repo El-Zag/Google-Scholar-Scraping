@@ -234,13 +234,14 @@ class Scraper:
     def generate_url(self, searchbar, page=1):
         q = searchbar.split()
         for i in range(len(q)):
-            if not q[i].isalpha():  # For characters that aren't letters, they are encoded in hex by google
-                if q[i] == "\\":
-                    q[i] = "%5C"
-                else:
-                    q[i] = codecs.encode(bytes(q[i], 'utf-8'), 'hex')
-                    q[i] = codecs.decode(q[i], 'utf-8')
-                    q[i] = '%' + q[i].upper()
+            word = q[i]
+            for j in range(len(word)):
+                if not word[j].isalpha():  # For characters that aren't letters, they are encoded in hex by google
+                    if word[j] == "\\":
+                        word[j] = "%5C"
+                    else:
+                        hvalue = '%' + codecs.decode(codecs.encode(bytes(word[j], 'utf-8'), 'hex'), 'utf-8').upper()
+                        q[i] = word.replace(word[j], hvalue)
         q = '+'.join(q)
         page = (page - 1) * 10
         return "https://scholar.google.com/scholar?start=" + str(page) + "&q=" + q + "&hl=" + self.language + "&as_sdt=0,5"
