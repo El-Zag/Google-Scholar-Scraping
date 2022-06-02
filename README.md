@@ -1,6 +1,6 @@
-# Google Scholar API
+# Research Scraping Tool (RST)
 
-This repositary proposes a code to scrape through Google Scholar research informations and automatically download all available papers with their metadata. It was specifically designed to work on chemistry components research. This project won a Hackathon organized by Mines Nancy (Engineering School in France).
+This is a fork of [Eloise Zag's](https://github.com/El-Zag) wonderful Google Scholar Scraping tool, with some extra features and bugfixes. Ideally, I'd like to generalize it to work with many academic databases (Scholar, Researchgate, CNKI, etc.) and get it packaged for general availability. Contributions are more than welcome!
 
 ## Before running the code (WINDOWS)
 * Install Google Chrome
@@ -38,3 +38,8 @@ There are 2 ways to use this script :
 * Find a way to better treat the captchas issue
 * Transform .pdf to good .html
 * Treat .html file to ensure they are indeed related to the subject
+* Add CNKI as a supported academic database (any others? E.g. Researchgate?)
+* Allow scraping author profiles
+* Grepping through the PDFs/html for author emails/contact info would be nice. Regex?
+* Add a CLI interface for Linux. Would be pretty easy, I've done it before. (Package it?)
+
