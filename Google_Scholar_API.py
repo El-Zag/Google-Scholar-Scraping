@@ -93,7 +93,9 @@ class Scraper:
         # List of all the articles
         articles = results.findChildren("div", class_="gs_r gs_or gs_scl")
 
+        print(len(articles))
         articles_dl = []
+        # TODO: I want to eventually rewrite this section/inputs so that instead of include_all, we have a flag download=Y/N, and another one to ignore ones missing the doc (ignore_missing?)
         for article in articles:
             # Cas d'un lien pdf directement
             if article.find("div", class_="gs_ggs gs_fl") is not None:
@@ -117,7 +119,6 @@ class Scraper:
                         else:
                             self.dl_embedded_pdf(info['Download'], name)
                         print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
-                        articles_dl.append(info)
 
                         self.save_metadata(info)
                 else:
@@ -130,8 +131,8 @@ class Scraper:
                             self.sciencedirect(info['Download'], name)
 
                             self.save_metadata(info)
-                            articles_dl.append(info)
                             print("\x1B[3m'" + info['Title'] + "'\x1B[23m")
+                articles_dl.append(info)
             elif include_all:
                 articles_dl.append(self.article_info(article, False))
 
