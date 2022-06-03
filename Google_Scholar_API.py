@@ -256,7 +256,6 @@ class Scraper:
                         hvalue = '%' + codecs.decode(codecs.encode(bytes(word[j], 'utf-8'), 'hex'), 'utf-8').upper()
                         q[i] = word.replace(word[j], hvalue)
         q = '+'.join(q)
-        print(q)
         return q
 
     def save_metadata(self, info):
