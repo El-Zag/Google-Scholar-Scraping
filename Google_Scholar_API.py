@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from time import sleep
+from sys import platform
 import os
 import codecs
 from pathlib import Path
@@ -36,6 +37,12 @@ class Scraper:
             options.add_argument(f'user-agent={self.ua.random}')
             self.driver = webdriver.Chrome(options=options)
             self.driver.get("https://scholar.google.com/")
+
+
+        if platform == "win32":
+            self.slash = '\\'
+        if platform == "linux" or platform == "linux2" or platform == "darwin":
+            self.slash = '/'
 
     def set_language(self, language):
         self.language = language
@@ -93,7 +100,6 @@ class Scraper:
         # List of all the articles
         articles = results.findChildren("div", class_="gs_r gs_or gs_scl")
 
-        print(len(articles))
         articles_dl = []
         # TODO: I want to eventually rewrite this section/inputs so that instead of include_all, we have a flag download=Y/N, and another one to ignore ones missing the doc (ignore_missing?)
         for article in articles:
@@ -106,12 +112,12 @@ class Scraper:
                     name = self.regex.sub('_', info['Title'].lower()) + '.pdf'
 
                     # Check if the paper has already been downloaded
-                    if not os.path.exists(self.download_dir + '\\' + name):
+                    if not os.path.exists(self.download_dir + self.slash + name):
                         info['Filename'] = name
 
                         # If the link is already a pdf file, download it directly
                         if os.path.splitext(info['Download'])[1] == ".pdf":
-                            filename = Path(self.download_dir + '\\' + name)
+                            filename = Path(self.download_dir + self.slash + name)
                             response = requests.get(info['Download'])
                             filename.write_bytes(response.content)
 
@@ -123,7 +129,7 @@ class Scraper:
                         self.save_metadata(info)
                 else:
                     name = self.regex.sub('_', info['Title'].lower()) + '.html'
-                    if not os.path.exists(self.download_dir + '\\' + name):
+                    if not os.path.exists(self.download_dir + self.slash + name):
 
                         # sciencedirect.com
                         if info['DL Source'] == "sciencedirect.com":
@@ -224,7 +230,7 @@ class Scraper:
         while not file or file.endswith('.crdownload'):
             sleep(1)
             file = self.most_recent_file()
-        os.rename(file, self.download_dir + '\\' + name)
+        os.rename(file, self.download_dir + self.slash + name)
         tmp_driver.close()
 
     def most_recent_file(self):
@@ -260,13 +266,15 @@ class Scraper:
         return q
 
     def save_metadata(self, info):
-        exists = os.path.isfile(self.download_dir + '\\metadonnees.csv')
-        with open(self.download_dir + '\\metadonnees.csv', 'a', newline='', encoding="utf-8") as output:
+        exists = os.path.isfile(self.download_dir + self.slash + 'metadonnees.csv')
+        with open(self.download_dir + self.slash + 'metadonnees.csv', 'a', newline='', encoding="utf-8") as output:
             dictwriter = csv.DictWriter(output, fieldnames=info.keys(), delimiter=";")
             if not exists:
                 dictwriter.writeheader()
             dictwriter.writerow(info)
             output.close()
+
+
 
     # Saves a html with abstract, text, and bibliography from a full url
     def sciencedirect(self, soup_url, name):
