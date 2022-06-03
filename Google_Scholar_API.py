@@ -58,15 +58,18 @@ class Scraper:
     # searchbar should be a String, just as you would have typed it in Google Scholar
     # downloaded the documents related to the searchbar String, for the pages indicated
     # returns a list of dics with the metadata
-    def download_files(self, searchbar, first_page=1, last_page=5, include_all = False):
+    def download_files(self, search, authors=[], first_page=1, last_page=5, include_all = False):
 
         articles_dl = []
+
+        if isinstance(authors, str):
+            authors = [authors]
 
         for i in range(first_page, last_page + 1):
 
             print("\nExploration of Page " + str(i))
 
-            url = self.generate_url(searchbar, page=i)
+            url = self.generate_url(search, authors, page=i)
 
             articles_dl = articles_dl + self.url_infos(url, include_all)
 
@@ -231,10 +234,18 @@ class Scraper:
         file = max(paths, key=os.path.getctime)
         return file
 
-    # searchbar should be a String, just as you would have typed it in Google Scholar
+    # search should be a String, just as you would have typed it in Google Scholar
     # Generate the google scholar url based on the words in the searchbar, at the indicated page
-    def generate_url(self, searchbar, page=1):
-        q = searchbar.split()
+    def generate_url(self, search, authors, page=1):
+        search = self.generate_hexstring(search)
+        page = (page - 1) * 10
+        for name in authors:
+            search += '+author%3A"' + self.generate_hexstring(name) + '"'
+
+        return "https://scholar.google.com/scholar?start=" + str(page) + "&q=" + search + "&hl=" + self.language + "&as_sdt=0,5"
+
+    def generate_hexstring(self, instr):
+        q = instr.split()
         for i in range(len(q)):
             word = q[i]
             for j in range(len(word)):
@@ -245,8 +256,8 @@ class Scraper:
                         hvalue = '%' + codecs.decode(codecs.encode(bytes(word[j], 'utf-8'), 'hex'), 'utf-8').upper()
                         q[i] = word.replace(word[j], hvalue)
         q = '+'.join(q)
-        page = (page - 1) * 10
-        return "https://scholar.google.com/scholar?start=" + str(page) + "&q=" + q + "&hl=" + self.language + "&as_sdt=0,5"
+        print(q)
+        return q
 
     def save_metadata(self, info):
         exists = os.path.isfile(self.download_dir + '\\metadonnees.csv')
