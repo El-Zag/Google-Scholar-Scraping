@@ -33,6 +33,8 @@ There are 2 ways to use this script :
 * sleeptime : time in seconds to wait for the pages to charge when downloading embedded pdfs or html pages. You may need to make it longer if you have a slow connexion to not get errors
 
 ## Future Extensions 
+* Does the code currently support non-english charactersets (Cyrillic, Korean Hangul, Chinese Hanzi, etc.?) **THIS IS ESSENTIAL**
+* It would be nice if we could link into google translate API or similar to automatically translate titles/names/abstracts
 * Choose to export metadata in json or csv
 * Add HTML sources other than sciencedirect
 * Find a way to better treat the captchas issue
@@ -40,6 +42,7 @@ There are 2 ways to use this script :
 * Treat .html file to ensure they are indeed related to the subject
 * Add CNKI as a supported academic database (any others? E.g. Researchgate?)
 * Allow scraping author profiles
+* Optionally use Firefox as webdriver
 * Grepping through the PDFs/html for author emails/contact info would be nice. Regex?
 * Add a CLI interface for Linux. Would be pretty easy, I've done it before. (Package it?)
 * Automated Testing. While this is at the bottom of the list, it definitely isn't the lowest priority!

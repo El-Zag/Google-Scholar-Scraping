@@ -65,7 +65,7 @@ class Scraper:
     # searchbar should be a String, just as you would have typed it in Google Scholar
     # downloaded the documents related to the searchbar String, for the pages indicated
     # returns a list of dics with the metadata
-    def download_files(self, search, authors=[], first_page=1, last_page=5, include_all = False):
+    def scrape_all(self, search, authors=[], first_page=1, last_page=5, include_all = False):
 
         articles_dl = []
 
@@ -303,4 +303,4 @@ class Scraper:
         html.close()
 
 # Example of scraper :
-# scraper = Scraper(os.getcwd() + '\\Download', 'fr', True, 5)
+# scraper = Scraper(os.getcwd() + '\\Download', 'fr', True, 5)
