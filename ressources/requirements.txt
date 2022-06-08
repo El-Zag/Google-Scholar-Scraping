@@ -1,8 +1,0 @@
-requests
-bs4
-selenium
-fake_useragent
-pathlib
-pubchempy
-pdfminer.six
-
