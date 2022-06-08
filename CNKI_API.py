@@ -125,7 +125,8 @@ class Scraper:
         articles = results.findChildren("div", class_="odd")
 
         articles_dl = []
-        # TODO: I want to eventually rewrite this section/inputs so that instead of include_all, we have a flag download=Y/N, and another one to ignore ones missing the doc (ignore_missing?)
+        # TODO: I want to eventually rewrite this section/inputs so that instead of include_all,
+        # we have a flag download=Y/N, and another one to ignore ones missing the doc (ignore_missing?)
         for article in articles:
             info = self.article_info(article)
             articles_dl.append(info)
@@ -139,56 +140,58 @@ class Scraper:
     # Output is a dictionary with those infos :
     # { Title : String, title of the paper,
     # Link : String, url to the article,
-    # Authors : String, list of Authors
-    # Journal : String, partial name of Journal
-    # Year : int, Year of publication
+    # Authors : Dict of authors and profile links (if available)
+    # Journal : List, partial name of Journal and link
+    # Date : String, Year-Month-Day of publication
     # Source : String, Source of publication
-    # Summary : String, Google scholar summary
-    # Cited : Int, Number of times cited
-    # Download : String, url to download the text
-    # Type : String, 'PDF', 'HTML'..
-    # DL Source : String, website the download is from}
+    # Summary : String, abstract (optional, future)
+    # Cited : Int, Number of times cited (optional, future)
+    # Download : String, url to download the text (optional, future)
+    # DOI : String (optional, future)
+    # Source : String, website the download is from}
     def article_info(self, soup_article):
         # assert (soup_article.find("div", class_="gs_ggs gs_fl") is not None, "Il n'y a pas de lien pour télécharger cet article")
         info = dict()
 
         # Informations sur l'article
-        general_infos = soup_article.findChild("div", class_="name")
-        info['Title'] = general_infos.a.text
-        info['Link'] = general_infos.a['href']
+        name_class = soup_article.findChild("div", class_="name")
+        info['Title'] = name_class.a.text
+        info['Link'] = name_class.a['href']
 
-        publication_infos = general_infos.findChild("div", class_="gs_a").text
-        publication_infos = publication_infos.replace(u'\xa0', u' ')
-        publication_infos = publication_infos.split(" - ")
-        length = len(publication_infos[1])
-        info['Authors'] = publication_infos[0]
-        if(len(publication_infos) > 2):
-            info['Journal'] = publication_infos[1][0:length - 6]
-            info['Year'] = int(publication_infos[1][length - 4:length])
-            info['Source'] = publication_infos[2]
-        else:
-            info['Source'] = publication_infos[1]
+        authors = dict()
+        author_class = soup_article.findChildren("div", class_="author")
+        for author in author_class:
+            authors[author.a.text] = author.a['href']
+        info['Authors'] = authors
 
-        summary = general_infos.findChild("div", class_="gs_rs").text
-        summary = summary.replace(u'\xa0', u' ')
-        info['Summary'] = summary
+        source_class = soup_article.findChildren("div", class_="source")
+        info['Source'] = [source_class.a.text, source_class.a['href']]
 
-        bottom_text = general_infos.findChild("div", class_="gs_fl")
-        cited = bottom_text.findChildren("a")[2].text
-        cited = cited.replace(u'\xa0', u' ')
-        info['Cited'] = cited[5:len(cited) - 5]
+        info['Year'] = soup_article.findChildren("div", class_="date").text
 
-        # Informations sur le téléchargement
-        if has_document:
-            dl_infos = soup_article.findChild("div", class_="gs_or_ggsm")
-            info['Download'] = dl_infos.a['href']
-            if dl_infos.text == "Full View":
-                info['Type'] = 'HTML'
-                info['DL Source'] = 'unknown'
-            else:
-                dl_type = dl_infos.span.text
-                info['Type'] = dl_type[1:len(dl_type) - 1]
-                info['DL Source'] = dl_infos.a.text.split(']')[1].split()[0]
+# This would be nice but it seems like we'd have to scrape the subpage, see note below
+#        info['Journal'] = publication_infos[2]
+
+# Can this be removed?
+#        summary = general_infos.findChild("div", class_="gs_rs").text
+#        summary = summary.replace(u'\xa0', u' ')
+
+        # The CNKI summary is not available from the search page; we'd have to spawn
+        # off a new thread/tab for each article and scrape it from there. TODO: Add
+        # this as an optional feature
+# TODO        info['Summary'] = summary
+#        info['Cited'] = cited[5:len(cited) - 5]
+
+#        if has_document:
+#            dl_infos = soup_article.findChild("div", class_="gs_or_ggsm")
+#            info['Download'] = dl_infos.a['href']
+#            if dl_infos.text == "Full View":
+#                info['Type'] = 'HTML'
+#                info['DL Source'] = 'unknown'
+#            else:
+#                dl_type = dl_infos.span.text
+#                info['Type'] = dl_type[1:len(dl_type) - 1]
+#                info['DL Source'] = dl_infos.a.text.split(']')[1].split()[0]
         return info
 
     def most_recent_file(self):
